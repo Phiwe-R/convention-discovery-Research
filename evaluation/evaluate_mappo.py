@@ -51,10 +51,12 @@ def run_episode(env, actor, agent_name, seed, belief_mode="real", deterministic=
             local = torch.as_tensor(np.asarray(observation["learner"], dtype=np.float32),
                                     device=device).unsqueeze(0)
             if agent_name == "explicit" and belief_mode == "uniform":
-                # Replace the updated belief with a uniform one at EVERY step.
-                memory = actor.initial_belief(1, device)
-                policy_input = torch.cat((local, memory), dim=-1)
-                logits = actor.actor_net(policy_input)
+                # Ablate beliefs while preserving the action GRU's own history.
+                uniform = actor.initial_belief(1, device)
+                policy_input = torch.cat((local, uniform), dim=-1).unsqueeze(1)
+                logits, action_hidden = actor.actor_net(policy_input, memory[2])
+                logits = logits[:, -1, :]
+                memory = (uniform, memory[1], action_hidden)
                 action = logits.argmax(dim=-1) if deterministic else torch.distributions.Categorical(logits=logits).sample()
             else:
                 action, _, _, memory = actor.get_action(local, memory, deterministic=deterministic)

@@ -17,10 +17,11 @@ from evaluation.evaluate_mappo import load_actor
 from configs.experiments import make_env
 
 
-def action_probs(actor, local_obs, belief):
-    """Ask the action MLP for probabilities using a chosen belief."""
+def action_probs(actor, local_obs, belief, hidden):
+    """Compare one-step beliefs using the same pre-step policy memory."""
     values = torch.cat((local_obs, belief), dim=-1)
-    return torch.softmax(actor.actor_net(values), dim=-1)
+    logits, _ = actor.actor_net(values.unsqueeze(1), hidden)
+    return torch.softmax(logits[:, -1, :], dim=-1)
 
 
 def compare_beliefs(actor, experiment, episodes=100, seed_start=10000):
@@ -57,7 +58,7 @@ def compare_beliefs(actor, experiment, episodes=100, seed_start=10000):
                     # First update the belief using only what the learner sees.
                     _, _, next_memory = actor(local, belief)
                     next_belief = next_memory[0]
-                    real_probs = action_probs(actor, local, next_belief)
+                    real_probs = action_probs(actor, local, next_belief, belief[2])
                     real_action = int(real_probs.argmax(dim=-1).item())
                     belief_distance += float((next_belief - uniform).abs().sum().item())
 
@@ -69,7 +70,7 @@ def compare_beliefs(actor, experiment, episodes=100, seed_start=10000):
 
                     actions_changed_this_step = 0
                     for name, alternative in alternatives.items():
-                        other_probs = action_probs(actor, local, alternative)
+                        other_probs = action_probs(actor, local, alternative, belief[2])
                         other_action = int(other_probs.argmax(dim=-1).item())
                         changed = other_action != real_action
                         changes[name] += int(changed)
