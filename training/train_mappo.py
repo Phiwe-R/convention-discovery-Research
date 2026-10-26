@@ -59,7 +59,7 @@ def collect_episode(env, actor, critic, agent_name, num_conventions, device, see
     observation, _ = env.reset(seed=seed)
     observations, states, actions, logps, rewards = [], [], [], [], []
     convention = int(observation["convention"][0])
-    memory = actor.initial_hidden(1, device) if agent_name == "implicit" else actor.initial_belief(1, device)
+    memory = actor.initial_hidden(1, device) if agent_name == "implicit" else actor.initial_memory(1, device)
     terminated = truncated = False
     id_correct_steps = []
 
@@ -73,7 +73,7 @@ def collect_episode(env, actor, critic, agent_name, num_conventions, device, see
             action_int = int(action.item())
             if agent_name == "explicit":
                 # This is the predicted belief, never the true convention.
-                id_correct_steps.append(int(memory.argmax(dim=-1).item() == convention))
+                id_correct_steps.append(int(memory[0].argmax(dim=-1).item() == convention))
             observations.append(local_obs)
             states.append(state)
             actions.append(action_int)

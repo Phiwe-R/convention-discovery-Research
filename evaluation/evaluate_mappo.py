@@ -41,7 +41,7 @@ def run_episode(env, actor, agent_name, seed, belief_mode="real", deterministic=
     true_convention = int(observation["convention"][0])
     device = next(actor.parameters()).device
     memory = (actor.initial_hidden(1, device) if agent_name == "implicit"
-              else actor.initial_belief(1, device))
+              else actor.initial_memory(1, device))
     reward_sum = 0.0
     matching = []
     done = truncated = False
@@ -59,7 +59,7 @@ def run_episode(env, actor, agent_name, seed, belief_mode="real", deterministic=
             else:
                 action, _, _, memory = actor.get_action(local, memory, deterministic=deterministic)
                 if agent_name == "explicit":
-                    prediction = int(memory.argmax(dim=-1).item())
+                    prediction = int(memory[0].argmax(dim=-1).item())
                     matching.append(int(prediction == true_convention))
             observation, reward, done, truncated, info = env.step(int(action.item()))
             reward_sum += float(reward)

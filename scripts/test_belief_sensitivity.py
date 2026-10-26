@@ -46,7 +46,7 @@ def compare_beliefs(actor, experiment, episodes=100, seed_start=10000):
         with torch.no_grad():
             for episode in range(episodes):
                 observation, _ = env.reset(seed=seed_start + episode)
-                belief = actor.initial_belief(1, device)
+                belief = actor.initial_memory(1, device)
                 finished = False
                 while not finished:
                     local = torch.as_tensor(
@@ -55,7 +55,8 @@ def compare_beliefs(actor, experiment, episodes=100, seed_start=10000):
                     ).unsqueeze(0)
 
                     # First update the belief using only what the learner sees.
-                    _, _, next_belief = actor(local, belief)
+                    _, _, next_memory = actor(local, belief)
+                    next_belief = next_memory[0]
                     real_probs = action_probs(actor, local, next_belief)
                     real_action = int(real_probs.argmax(dim=-1).item())
                     belief_distance += float((next_belief - uniform).abs().sum().item())
@@ -88,7 +89,7 @@ def compare_beliefs(actor, experiment, episodes=100, seed_start=10000):
                     # Keep following the REAL belief policy in the environment.
                     observation, _, terminated, truncated, _ = env.step(real_action)
                     finished = bool(terminated or truncated)
-                    belief = next_belief
+                    belief = next_memory
     finally:
         env.close()
 

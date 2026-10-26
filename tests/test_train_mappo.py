@@ -90,12 +90,15 @@ def test_episodes_and_ppo_update(agent_name):
     old = next(actor.parameters()).detach().clone()
 
     optimizer = torch.optim.Adam(
-        list(actor.parameters()) + list(critic.parameters()),
+        list(actor.actor_net.parameters() if agent_name == "explicit" else actor.parameters()) + list(critic.parameters()),
         lr=0.01,
     )
 
+    belief_optimizer = (torch.optim.Adam(actor.belief_net.parameters(), lr=0.01)
+                        if agent_name == "explicit" else None)
     result = update_models(
-        actor, critic, optimizer, episodes, agent_name, epochs=2
+        actor, critic, optimizer, episodes, agent_name, epochs=2,
+        belief_optimizer=belief_optimizer
     )
 
     assert torch.isfinite(torch.tensor(result["policy_loss"]))

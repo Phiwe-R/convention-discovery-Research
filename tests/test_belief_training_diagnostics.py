@@ -39,8 +39,8 @@ def test_ce_gradients_reach_belief_mlp():
     assert not has_nonzero_gradient(actor.actor_net.parameters())
 
 
-def test_actor_loss_also_reaches_belief_mlp():
-    """The PPO actor should be able to learn through its belief input."""
+def test_actor_loss_does_not_reach_belief_network():
+    """PPO trains the actor without changing its standalone identifier."""
     actor = make_actor()
     observations = torch.randn(2, 4, 5)
     action_logits, _, _ = actor(observations)
@@ -49,7 +49,7 @@ def test_actor_loss_also_reaches_belief_mlp():
     actor.zero_grad()
     policy_loss.backward()
     assert has_nonzero_gradient(actor.actor_net.parameters())
-    assert has_nonzero_gradient(actor.belief_net.parameters())
+    assert not has_nonzero_gradient(actor.belief_net.parameters())
 
 
 def test_full_sequence_matches_step_by_step():
@@ -58,7 +58,7 @@ def test_full_sequence_matches_step_by_step():
     observations = torch.randn(2, 7, 5)
     with torch.no_grad():
         full_actions, full_belief_logits, full_belief = actor(observations)
-        belief = actor.initial_belief(2)
+        belief = actor.initial_memory(2)
         individual_actions, individual_beliefs = [], []
         for t in range(7):
             action_logits, belief_logits, belief = actor(observations[:, t, :], belief)
@@ -66,7 +66,7 @@ def test_full_sequence_matches_step_by_step():
             individual_beliefs.append(belief_logits)
     assert torch.allclose(full_actions, torch.cat(individual_actions, dim=1), atol=1e-6)
     assert torch.allclose(full_belief_logits, torch.cat(individual_beliefs, dim=1), atol=1e-6)
-    assert torch.allclose(full_belief, belief, atol=1e-6)
+    assert all(torch.allclose(x, y, atol=1e-6) for x, y in zip(full_belief, belief))
 
 
 def test_initial_belief_is_uniform_and_episode_reset_is_clean():
@@ -78,7 +78,7 @@ def test_initial_belief_is_uniform_and_episode_reset_is_clean():
         assert torch.allclose(initial, torch.full((1, 6), 1 / 6))
         initial_actions, initial_logits, _ = actor(observations)
         _, _, old_belief = actor(torch.randn(1, 5, 5))
-        restarted_actions, restarted_logits, _ = actor(observations, actor.initial_belief(1))
+        restarted_actions, restarted_logits, _ = actor(observations, actor.initial_memory(1))
         continued_actions, _, _ = actor(observations, old_belief)
     assert torch.allclose(initial_actions, restarted_actions, atol=1e-6)
     assert torch.allclose(initial_logits, restarted_logits, atol=1e-6)
@@ -105,8 +105,9 @@ def test_training_update_changes_belief_weights():
     episodes = [collect_episode(SmallEnv(), actor, critic, 'explicit', 3,
                                 torch.device('cpu')) for _ in range(4)]
     before = [p.detach().clone() for p in actor.belief_net.parameters()]
-    optimiser = torch.optim.Adam(list(actor.parameters()) + list(critic.parameters()), lr=2.5e-4)
-    info = update_models(actor, critic, optimiser, episodes, 'explicit', epochs=2, ce_coef=0.1)
+    optimiser = torch.optim.Adam(list(actor.actor_net.parameters()) + list(critic.parameters()), lr=2.5e-4)
+    belief_optimiser = torch.optim.Adam(actor.belief_net.parameters(), lr=2.5e-4)
+    info = update_models(actor, critic, optimiser, episodes, 'explicit', epochs=2, ce_coef=0.1, belief_optimizer=belief_optimiser)
     assert info['belief_ce'] is not None and info['belief_ce'] > 0
     assert any(not torch.equal(old, p.detach())
                for old, p in zip(before, actor.belief_net.parameters()))
