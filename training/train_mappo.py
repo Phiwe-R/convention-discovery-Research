@@ -110,8 +110,10 @@ def collect_episode(env, actor, critic, agent_name, num_conventions, device, see
 
 def update_models(actor, critic, optimizer, episodes, agent_name, *, epochs=4,
                   clip_coef=0.2, value_coef=0.5, entropy_coef=0.01, ce_coef=0.1,
-                  max_grad_norm=0.5):
+                  max_grad_norm=0.5, belief_optimizer=None):
     """Update using full episodes, so recurrent history is never shuffled."""
+    if agent_name == "explicit" and belief_optimizer is None:
+        raise ValueError("The explicit belief network needs its own optimizer")
     all_adv = torch.cat([ep["advantages"] for ep in episodes])
     adv_mean = all_adv.mean()
     adv_std = all_adv.std(unbiased=False).clamp_min(1e-8)
@@ -151,12 +153,18 @@ def update_models(actor, critic, optimizer, episodes, agent_name, *, epochs=4,
                 belief_loss = c if belief_loss is None else belief_loss + c
 
         loss = policy_loss + value_coef * value_loss - entropy_coef * entropy_loss
-        if belief_loss is not None:
-            loss = loss + ce_coef * belief_loss
         optimizer.zero_grad()
         loss.backward()
-        nn.utils.clip_grad_norm_(list(actor.parameters()) + list(critic.parameters()), max_grad_norm)
+        policy_parameters = (actor.actor_net.parameters() if agent_name == "explicit"
+                             else actor.parameters())
+        nn.utils.clip_grad_norm_(list(policy_parameters) + list(critic.parameters()), max_grad_norm)
         optimizer.step()
+        if belief_loss is not None:
+            # Identification alone trains the standalone belief network.
+            belief_optimizer.zero_grad()
+            (ce_coef * belief_loss).backward()
+            nn.utils.clip_grad_norm_(actor.belief_net.parameters(), max_grad_norm)
+            belief_optimizer.step()
         summary = {"policy_loss": float(policy_loss.item()),
                    "value_loss": float(value_loss.item()),
                    "belief_ce": None if belief_loss is None else float(belief_loss.item())}
@@ -177,8 +185,13 @@ def train(experiment="experiment1", agent_name="implicit", timesteps=2400, seed=
     env = env_factory(experiment)
     device = torch.device(device)
     actor, critic = create_models(agent_name, num_conventions, device)
-    optimizer = torch.optim.Adam(list(actor.parameters()) + list(critic.parameters()),
+    policy_parameters = (actor.actor_net.parameters() if agent_name == "explicit"
+                         else actor.parameters())
+    optimizer = torch.optim.Adam(list(policy_parameters) + list(critic.parameters()),
                                  lr=learning_rate, eps=1e-5)
+    belief_optimizer = (torch.optim.Adam(actor.belief_net.parameters(),
+                                        lr=learning_rate, eps=1e-5)
+                        if agent_name == "explicit" else None)
     steps = completed = successful = 0
     recent = deque(maxlen=100)
     last_info = {}
@@ -197,7 +210,8 @@ def train(experiment="experiment1", agent_name="implicit", timesteps=2400, seed=
                 successful += int(episode["success"])
                 recent.append(episode)
             last_info = update_models(actor, critic, optimizer, batch, agent_name,
-                                      epochs=update_epochs, ce_coef=ce_coef)
+                                      epochs=update_epochs, ce_coef=ce_coef,
+                                      belief_optimizer=belief_optimizer)
             # Recent metrics use at most the last 100 finished episodes.
             recent_success = 100 * sum(ep["success"] for ep in recent) / len(recent)
             message = (f"Steps {steps:>7} | Episodes {completed:>5} | "
@@ -221,12 +235,15 @@ def train(experiment="experiment1", agent_name="implicit", timesteps=2400, seed=
         env.close()
     destination = Path(output_dir) / experiment / agent_name / f"seed_{seed}.pt"
     destination.parent.mkdir(parents=True, exist_ok=True)
-    torch.save({"actor": actor.state_dict(), "critic": critic.state_dict(),
+    checkpoint = {"actor": actor.state_dict(), "critic": critic.state_dict(),
                 "optimizer": optimizer.state_dict(), "experiment": experiment,
                 "agent": agent_name, "num_conventions": num_conventions,
                 "seed": seed, "timesteps": steps, "episodes": completed,
                 "goal_success": successful / completed,
-                "learning_rate": learning_rate, "ce_coef": ce_coef}, destination)
+                "learning_rate": learning_rate, "ce_coef": ce_coef}
+    if belief_optimizer is not None:
+        checkpoint["belief_optimizer"] = belief_optimizer.state_dict()
+    torch.save(checkpoint, destination)
     print(f"Saved: {destination}")
     return destination
 

@@ -23,6 +23,10 @@ class ExplicitBeliefActor(nn.Module):
         self.belief_net = nn.Sequential(
             nn.Linear(obs_dim + num_conventions, hidden_dim),
             nn.Tanh(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.Tanh(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.Tanh(),
             nn.Linear(hidden_dim, num_conventions),
         )
 
@@ -68,7 +72,8 @@ class ExplicitBeliefActor(nn.Module):
             obs_t = observations[:, t, :]
             logits_b = self.belief_net(torch.cat((obs_t, belief), dim=-1))
             belief = torch.softmax(logits_b, dim=-1)
-            logits_a = self.actor_net(torch.cat((obs_t, belief), dim=-1))
+            # PPO uses the prediction but must not train the belief network.
+            logits_a = self.actor_net(torch.cat((obs_t, belief.detach()), dim=-1))
             action_logits.append(logits_a)
             belief_logits.append(logits_b)
 
