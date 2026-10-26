@@ -24,10 +24,6 @@ We compare two approaches:
 
 Both approaches are trained using a Multi-Agent Proximal Policy Optimization (MAPPO)-based framework.
 
-### Research Question
-
-> Under what conditions does convention discovery in ad hoc teamwork transition from being achievable through implicit memory to requiring explicit belief tracking?
-
 ### Research Objectives
 
 1. Design a controlled GridWorld environment containing deterministic partner conventions.
