@@ -1,0 +1,21 @@
+# Python generated files
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Editor files
+.vscode/
+.idea/
+
+# Secrets
+.env
+.env.*
+
+# Operating system files
+.DS_Store
+Thumbs.db

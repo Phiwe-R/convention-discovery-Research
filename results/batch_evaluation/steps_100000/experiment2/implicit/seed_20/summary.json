@@ -1,0 +1,19 @@
+{
+  "experiment": "experiment2",
+  "agent": "implicit",
+  "timesteps": 100000,
+  "seed": 20,
+  "checkpoint": "results\\batch_training\\steps_100000\\experiment2\\implicit\\seed_20.pt",
+  "evaluation_episodes": 1000,
+  "goal_success_pct": 58.3,
+  "mean_reward": 0.49644,
+  "mean_length": 8.534,
+  "truncated_pct": 41.699999999999996,
+  "id_accuracy_final_pct": 18.89999955892563,
+  "id_accuracy_steps_pct": 18.66651028394699,
+  "id_cross_entropy": 1.7892948389053345,
+  "uniform_goal_success_pct": null,
+  "uniform_mean_reward": null,
+  "belief_success_difference_pp": null,
+  "chance_id_accuracy_pct": 16.666666666666668
+}
