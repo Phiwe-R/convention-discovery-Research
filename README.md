@@ -1,6 +1,6 @@
 # Convention Discovery Under Partner Uncertainty
 
-This folder contains the code, saved models, training logs and evaluation results for the four agents in the research report. **Experiment 1** uses 3 partner conventions; **Experiment 2** uses 6. The reported comparisons use training seeds **20, 21 and 22**, with **100,000** and **500,000** training-step budgets.
+The repo contains the code, saved models, training logs and evaluation results for the four agents in the report . **Experiment 1** uses 3 partner conventions; **Experiment 2** uses 6. The reported comparisons use training seeds **20, 21 and 22**, with **100,000** and **500,000** training step budgets.
 
 ## 1. Agents
 
