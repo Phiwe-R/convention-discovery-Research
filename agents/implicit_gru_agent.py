@@ -1,4 +1,4 @@
-"""Pure implicit recurrent actor and centralized critic for MAPPO.
+"""Agent 1: Pure implicit GRU and centralized critic for MAPPO.
 
 The actor NEVER receives the convention ID, goals, or global state.
 No convention classifier or cross-entropy loss is part of this architecture.

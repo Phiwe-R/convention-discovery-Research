@@ -2,8 +2,7 @@
 
 LEARNER_GOALS = ((0, 0), (0, 4), (2, 1), (3, 3), (1, 4), (4, 2), (1, 1), (2, 4))
 PARTNER_GOALS = ((0, 2), (0, 3), (1, 3), (2, 3), (3, 0), (3, 1), (4, 0), (4, 4))
-# Independently sampled start-to-goal distance, NOT linked to a goal ID.
-# Three of eight equally likely distance categories are maximum distance four.
+
 DISTANCE_OPTIONS = (1, 2, 2, 3, 3, 4, 4, 4)
 
 

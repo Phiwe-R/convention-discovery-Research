@@ -1,0 +1,39 @@
+C:\Users\rasen\AppData\Roaming\Python\Python313\site-packages\pygame\pkgdata.py:25: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import resource_stream, resource_exists
+A3: generating balanced training/validation/test episodes
+Epoch 01 | val goal-step 18.4% | val goal-final 17.3% | val CE 2.031 | next-action CE 1.061
+Epoch 02 | val goal-step 20.3% | val goal-final 21.0% | val CE 2.005 | next-action CE 0.983
+Epoch 03 | val goal-step 22.2% | val goal-final 23.0% | val CE 1.978 | next-action CE 0.964
+Epoch 04 | val goal-step 23.9% | val goal-final 25.8% | val CE 1.937 | next-action CE 0.950
+Epoch 05 | val goal-step 25.0% | val goal-final 25.9% | val CE 1.909 | next-action CE 0.944
+Epoch 06 | val goal-step 26.9% | val goal-final 29.4% | val CE 1.874 | next-action CE 0.939
+Epoch 07 | val goal-step 27.9% | val goal-final 32.0% | val CE 1.846 | next-action CE 0.935
+Epoch 08 | val goal-step 28.5% | val goal-final 33.5% | val CE 1.822 | next-action CE 0.933
+Epoch 09 | val goal-step 30.7% | val goal-final 36.9% | val CE 1.790 | next-action CE 0.933
+Epoch 10 | val goal-step 30.6% | val goal-final 36.6% | val CE 1.786 | next-action CE 0.932
+Epoch 11 | val goal-step 32.1% | val goal-final 39.2% | val CE 1.753 | next-action CE 0.926
+Epoch 12 | val goal-step 33.5% | val goal-final 40.4% | val CE 1.727 | next-action CE 0.922
+Epoch 13 | val goal-step 33.8% | val goal-final 41.1% | val CE 1.706 | next-action CE 0.917
+Epoch 14 | val goal-step 35.2% | val goal-final 43.9% | val CE 1.681 | next-action CE 0.911
+Epoch 15 | val goal-step 35.8% | val goal-final 45.1% | val CE 1.665 | next-action CE 0.906
+Epoch 16 | val goal-step 37.0% | val goal-final 46.9% | val CE 1.633 | next-action CE 0.900
+Epoch 17 | val goal-step 37.9% | val goal-final 48.1% | val CE 1.616 | next-action CE 0.896
+Epoch 18 | val goal-step 38.0% | val goal-final 49.8% | val CE 1.611 | next-action CE 0.892
+Epoch 19 | val goal-step 39.7% | val goal-final 51.9% | val CE 1.576 | next-action CE 0.886
+Epoch 20 | val goal-step 40.5% | val goal-final 52.8% | val CE 1.557 | next-action CE 0.883
+Epoch 21 | val goal-step 41.1% | val goal-final 53.4% | val CE 1.537 | next-action CE 0.881
+Epoch 22 | val goal-step 41.2% | val goal-final 53.9% | val CE 1.529 | next-action CE 0.877
+Epoch 23 | val goal-step 42.1% | val goal-final 55.4% | val CE 1.513 | next-action CE 0.873
+Epoch 24 | val goal-step 43.3% | val goal-final 55.9% | val CE 1.486 | next-action CE 0.871
+Epoch 25 | val goal-step 43.4% | val goal-final 56.2% | val CE 1.491 | next-action CE 0.868
+Epoch 26 | val goal-step 43.3% | val goal-final 57.1% | val CE 1.470 | next-action CE 0.863
+Epoch 27 | val goal-step 44.0% | val goal-final 58.1% | val CE 1.451 | next-action CE 0.861
+Epoch 28 | val goal-step 44.5% | val goal-final 58.4% | val CE 1.439 | next-action CE 0.856
+Epoch 29 | val goal-step 45.0% | val goal-final 59.1% | val CE 1.426 | next-action CE 0.854
+Epoch 30 | val goal-step 45.4% | val goal-final 59.4% | val CE 1.412 | next-action CE 0.850
+Epoch 31 | val goal-step 45.2% | val goal-final 59.7% | val CE 1.409 | next-action CE 0.847
+Epoch 32 | val goal-step 46.3% | val goal-final 61.0% | val CE 1.386 | next-action CE 0.844
+Epoch 33 | val goal-step 45.3% | val goal-final 59.2% | val CE 1.404 | next-action CE 0.841
+Epoch 34 | val goal-step 46.9% | val goal-final 61.5% | val CE 1.372 | next-action CE 0.838
+Epoch 35 | val goal-step 46.2% | val goal-final 60.8% | val CE 1.382 | next-action CE 0.836
+Saved A3 goal-only beliefs: results\goal_only\pretrained\goal_only_exp1.pt | test={'loss': 3.115165526072184, 'goal_step_ce': 1.3737443059285481, 'goal_final_ce': 0.9949743865331014, 'next_action_ce': 0.8298654910723369, 'goal_step_accuracy_pct': 46.90738471476237, 'goal_final_accuracy_pct': 60.499999959309896, 'next_action_accuracy_pct': 65.72203688557943}

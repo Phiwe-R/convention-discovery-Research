@@ -1,4 +1,4 @@
-"""The SINGLE library of deterministic partner conventions C0--C5.
+"""The SINGLE library of deterministic partner conventions C0 toC5.
 
 All plans are generated at the beginning of each episode using its sampled
 start positions and hidden learner goal; these are not fixed action lists.

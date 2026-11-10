@@ -1,4 +1,5 @@
-"""Central experiment configuration -- no duplicated GridWorld files."""
+"""Central experiment configuration"""
+
 from environments.gridworld import SimpleGridworld, MAPPOWrapper
 
 EXPERIMENTS = {

@@ -1,0 +1,42 @@
+C:\Users\rasen\AppData\Roaming\Python\Python313\site-packages\pygame\pkgdata.py:25: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import resource_stream, resource_exists
+Generating balanced training episodes...
+Generating validation episodes...
+Generating test episodes...
+Epoch 01 | Val loss 8.137 | Convention ID 35.3% | Goal ID 19.7%
+Epoch 02 | Val loss 7.978 | Convention ID 40.5% | Goal ID 20.9%
+Epoch 03 | Val loss 7.720 | Convention ID 49.3% | Goal ID 22.4%
+Epoch 04 | Val loss 7.212 | Convention ID 58.6% | Goal ID 25.2%
+Epoch 05 | Val loss 6.801 | Convention ID 63.8% | Goal ID 27.4%
+Epoch 06 | Val loss 6.496 | Convention ID 66.6% | Goal ID 32.3%
+Epoch 07 | Val loss 6.269 | Convention ID 67.5% | Goal ID 34.0%
+Epoch 08 | Val loss 6.067 | Convention ID 66.1% | Goal ID 37.8%
+Epoch 09 | Val loss 6.005 | Convention ID 67.4% | Goal ID 36.4%
+Epoch 10 | Val loss 5.785 | Convention ID 65.8% | Goal ID 44.1%
+Epoch 11 | Val loss 5.665 | Convention ID 66.5% | Goal ID 45.9%
+Epoch 12 | Val loss 5.592 | Convention ID 67.2% | Goal ID 46.1%
+Epoch 13 | Val loss 5.500 | Convention ID 67.0% | Goal ID 47.3%
+Epoch 14 | Val loss 5.439 | Convention ID 66.7% | Goal ID 48.6%
+Epoch 15 | Val loss 5.380 | Convention ID 67.0% | Goal ID 50.1%
+Epoch 16 | Val loss 5.328 | Convention ID 67.7% | Goal ID 50.3%
+Epoch 17 | Val loss 5.248 | Convention ID 67.6% | Goal ID 51.5%
+Epoch 18 | Val loss 5.203 | Convention ID 68.6% | Goal ID 51.3%
+Epoch 19 | Val loss 5.148 | Convention ID 68.1% | Goal ID 52.2%
+Epoch 20 | Val loss 5.105 | Convention ID 68.2% | Goal ID 53.5%
+Epoch 21 | Val loss 5.061 | Convention ID 68.3% | Goal ID 53.5%
+Epoch 22 | Val loss 5.012 | Convention ID 68.1% | Goal ID 54.8%
+Epoch 23 | Val loss 4.991 | Convention ID 68.4% | Goal ID 54.8%
+Epoch 24 | Val loss 4.929 | Convention ID 68.2% | Goal ID 56.5%
+Epoch 25 | Val loss 4.920 | Convention ID 68.3% | Goal ID 55.6%
+Epoch 26 | Val loss 4.879 | Convention ID 68.7% | Goal ID 56.3%
+Epoch 27 | Val loss 4.825 | Convention ID 68.6% | Goal ID 57.9%
+Epoch 28 | Val loss 4.782 | Convention ID 68.5% | Goal ID 57.8%
+Epoch 29 | Val loss 4.750 | Convention ID 68.9% | Goal ID 58.4%
+Epoch 30 | Val loss 4.739 | Convention ID 69.1% | Goal ID 58.5%
+Epoch 31 | Val loss 4.717 | Convention ID 68.2% | Goal ID 58.8%
+Epoch 32 | Val loss 4.654 | Convention ID 69.1% | Goal ID 59.3%
+Epoch 33 | Val loss 4.662 | Convention ID 68.6% | Goal ID 59.9%
+Epoch 34 | Val loss 4.632 | Convention ID 69.4% | Goal ID 59.7%
+Epoch 35 | Val loss 4.605 | Convention ID 69.5% | Goal ID 60.8%
+Saved pretrained beliefs: results\joint_belief\balanced_exp1.pt
+Held-out test: {'loss': 4.602449605305989, 'convention_ce': 0.7265654164950053, 'goal_ce': 1.4036639960606894, 'next_action_ce': 0.8127144490877787, 'final_convention_pct': 67.56666660563151, 'final_goal_pct': 60.499999959309896, 'step_convention_pct': 56.27631238810221, 'step_goal_pct': 44.47863966878255, 'next_action_pct': 66.58577014160156}

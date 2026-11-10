@@ -1,0 +1,9 @@
+{
+  "experiment": "experiment2",
+  "seed": 20,
+  "budget": 100000,
+  "pretrained_belief": "results\\joint_belief\\balanced_exp2.pt",
+  "guide_strength": 5.0,
+  "imitation_enabled": false,
+  "belief_frozen": true
+}

@@ -1,0 +1,12 @@
+{
+  "architecture": "goal_only_guided_clean_v1",
+  "experiment": "experiment1",
+  "seed": 21,
+  "target_timesteps": 100000,
+  "guide_strength": 5.0,
+  "pretrained_belief": "results\\goal_only\\pretrained\\goal_only_exp1.pt",
+  "belief_frozen": true,
+  "convention_head_present": false,
+  "imitation_enabled": false,
+  "critic_training_only_convention": true
+}

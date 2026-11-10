@@ -1,0 +1,17 @@
+{
+  "architecture": "goal_only_guided_clean_v1",
+  "experiment": "experiment2",
+  "seed": 21,
+  "target_timesteps": 100000,
+  "checkpoint": "results\\goal_only\\experiment2\\goal_only_seed_21_steps100005.pt",
+  "belief_mode": "real",
+  "episodes": 1000,
+  "evaluation_seed_start": 10000,
+  "success_pct": 78.7,
+  "mean_reward": 0.72313,
+  "mean_length": 6.772,
+  "final_goal_id_pct": 51.0,
+  "step_goal_id_pct": 29.68103957471943,
+  "mean_true_goal_probability_final": 0.34595513169444164,
+  "convention_head_present": false
+}

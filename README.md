@@ -1,483 +1,69 @@
 # Convention Discovery Under Partner Uncertainty
 
-### Implicit Memory vs Explicit Belief Tracking in Ad Hoc Teamwork
+This folder contains the code, saved models, training logs and evaluation results for the four agents in the research report. **Experiment 1** uses 3 partner conventions; **Experiment 2** uses 6. The reported comparisons use training seeds **20, 21 and 22**, with **100,000** and **500,000** training-step budgets.
 
-**Research Area:** Multi-Agent Reinforcement Learning (MARL), Ad Hoc Teamwork, Convention Discovery  
-**Institution:** University of the Witwatersrand  
-**Programme:** BSc Honours in Computational and Applied Mathematics  
-**Status:** Training and initial evaluation completed; results analysis in progress
+## 1. Agents
 
----
-
-## 1. Project Overview
-
-In ad hoc teamwork, an agent must cooperate with unfamiliar partners without relying on prior coordination or communication.
-
-One challenge is **partner uncertainty**: the learner may know which conventions are possible but does not know which convention the current partner follows.
-
-This project investigates how agents learn to recognise and adapt to different partner conventions.
-
-We compare two approaches:
-
-- **Implicit learning:** A recurrent neural network uses memory of previous observations to select actions without explicitly representing the partner's identity.
-- **Explicit belief tracking:** A neural network maintains a probability distribution over possible partner conventions and supplies that information to the action-selection network.
-
-Both approaches are trained using a Multi-Agent Proximal Policy Optimization (MAPPO)-based framework.
-
-### Research Objectives
-
-1. Design a controlled GridWorld environment containing deterministic partner conventions.
-2. Implement implicit and explicit learning architectures.
-3. Compare learning performance under different levels of convention uncertainty.
-4. Evaluate both goal-reaching performance and convention-identification accuracy.
-5. Investigate whether explicit belief representations influence action selection.
-6. Assess performance across multiple training seeds and training budgets.
-
----
-
-## 2. Environment
-
-The environment is a **5 × 5 toroidal GridWorld**, meaning that agents can wrap around grid boundaries.
-
-It contains two agents:
-
-| Agent | Role |
+| File in `agents/` | Purpose |
 |---|---|
-| Learner | Observes the partner and attempts to reach its assigned goal |
-| Partner | Follows a deterministic convention-dependent policy |
+| `implicit_gru_agent.py` | **Agent 1:** implicit GRU policy. |
+| `goal_guided_actor.py` | **Agent 2:** actor using convention and goal beliefs |
+| `joint_belief_agent.py` | **Agent 2:** supporting network for the joint convention-and-goal belief predictions. |
+| `explicit_belief_agent.py` | **Agent 3:** GRU-based convention-only belief agent. |
+| `goal_only_guided_actor.py` | **Agent 4:** actor using goal beliefs and goal guidance. |
+| `centralized_critic.py` | Centralised critic used during MAPPO training. |
 
-### Environment Properties
+## 2. Code folders
 
-| Property | Configuration |
+| Location | What to find there |
 |---|---|
-| Grid size | 5 × 5 |
-| Movement | Toroidal (wraparound) |
-| Number of agents | 2 |
-| Action space | UP, DOWN, LEFT, RIGHT, STAY |
-| Maximum episode length | 12 steps |
-| Learner observation dimension | 5 |
-| Number of learner-goal configurations | 8 |
-| Number of partner-goal configurations | 8 |
-| Partner behaviour | Deterministic, convention-dependent |
-| Active convention | Hidden from the learner |
+| `configs/experiments.py` | Settings for Experiment 1 (3 conventions) and Experiment 2 (6 conventions). |
+| `environments/conventions.py` | Definitions of the partner movement conventions. |
+| `environments/goal_configurations.py` | Possible learner and partner goal locations. |
+| `environments/gridworld.py` | The 5×5 GridWorld environment and its dynamics. |
+| `training/train_mappo.py` | MAPPO training for **Agents 1 and 3**; Agent 3 also uses convention cross-entropy. |
+| `scripts/train_goal_guided_batch.py` | Batch-training runner used for **Agent 2**. |
+| `scripts/train_goal_only_batch.py` | Batch-training runner used for **Agent 4**. |
+| `scripts/evaluate_goal_only_batch.py` | Batch-evaluation runner used for **Agent 4**. |
+| `evaluation/evaluate_research_batch.py` | Final batch evaluation for **Agent 2** (and supporting implicit comparisons). |
+| `tests/` | Development tests; not the final research results. |
+| `runs/` | TensorBoard logs; not the primary source of reported figures and tables. |
 
-The learner's observation includes its position, the partner's position, and the partner's previous action.
+### Final batch launchers (in the main folder)
 
-The active partner convention is sampled at the beginning of an episode and is not directly provided to the learner.
-
-### Goal Configurations
-
-The environment varies both learner and partner goals between episodes.
-
-The goal configurations are defined in:
-
-`environments/goal_configurations.py`
-
-### Partner Conventions
-
-The environment supports the following conventions:
-
-| Convention | Behaviour |
+| File | Purpose |
 |---|---|
-| C0 | Goal visiting |
-| C1 | Route mirroring |
-| C2 | Inverse mirroring |
-| C3 | Clockwise route rotation |
-| C4 | Counterclockwise route rotation |
-| C5 | Waypoint signalling |
+| `run_explicit_training.bat` | Runs Agent 2 training through `scripts/train_goal_guided_batch.py`. |
+| `run_a3_training.bat` | Runs Agent 4 training through `scripts/train_goal_only_batch.py`. |
+| `run_a3_evaluation.bat` | Runs Agent 4 evaluation through `scripts/evaluate_goal_only_batch.py`. |
 
-The partner follows a deterministic movement policy based on its active convention and the environment configuration.
+**Important:** Despite `a3` in the filenames, the two `run_a3_*.bat` files belong to **Agent 4 (goal-only)** in this report. Agents **1 and 3** were trained using `training/train_mappo.py`.
 
----
+The older direct training entry points `training/pretrain_balanced_belief.py`, `training/pretrain_goal_only.py`, `training/train_goal_guided.py` and `training/train_goal_only.py` are **not the final batch launchers**. **Keep these Python files:** the batch runners call them internally for pretraining and training. `training/train_joint_belief.py` is also a supporting code module. `scripts/plot_balanced_pretraining.py` and the older `evaluation/evaluate_goal_guided.py`, `evaluation/evaluate_goal_only.py` and `evaluation/evaluate_joint_belief.py` are not used for the final report results.
 
-## 3. Agent Architectures
+## 3. Results folders
 
-### 3.1 Implicit Agent — GRU-MAPPO
-
-The implicit agent uses a Gated Recurrent Unit (GRU) to maintain information about previous observations.
-
-**Architecture**
-
-```text
-Observation at time t
-        |
-        v
-   GRU Network
-   Hidden size: 64
-        |
-        v
-   Hidden State
-        |
-        v
-   Policy Head
-        |
-        v
- Action Probabilities
-        |
-        v
-    Selected Action
-```
-
-The GRU hidden state serves as an implicit memory of the interaction history.
-
-The agent is not explicitly supervised to classify the active convention.
-
-#### Convention Identification Using a Probe
-
-After training, the GRU is frozen and a separate linear classifier is trained to predict the active convention from its hidden states.
-
-```text
-Frozen GRU
-    |
-    v
-Hidden State (64)
-    |
-    v
-Linear Probe
-    |
-    v
-Predicted Convention
-```
-
-The probe is used only for representation analysis; it is not part of the original action-selection policy.
-
-### 3.2 Explicit Agent — Belief-MAPPO
-
-The explicit agent contains two cooperating neural networks:
-
-1. A belief network.
-2. An action-selection network.
-
-**Architecture**
-
-```text
-Previous Belief ---------+
-                         |
-Current Observation -----+
-                         |
-                         v
-                  Belief Network
-                         |
-                         v
-                  Updated Belief
-                         |
-              +----------+
-              |
-Current Observation
-              |
-              v
-           Policy MLP
-              |
-              v
-      Action Probabilities
-              |
-              v
-         Selected Action
-```
-
-The belief network outputs a probability distribution over possible partner conventions.
-
-The network is trained using a cross-entropy objective with the true convention labels.
-
-The policy is trained using the MAPPO/PPO objective.
-
-### Centralized Training
-
-Both approaches use a centralized critic during training.
-
-The critic has access to privileged environment information for value estimation. This information is not directly supplied to the learner's action-selection policy.
-
----
-
-## 4. Experimental Design
-
-Two main experiments investigate convention uncertainty.
-
-| Experiment | Conventions | Convention Count |
-|---|---|---:|
-| Experiment 1 | C0, C1, C2 | 3 |
-| Experiment 2 | C0, C1, C2, C3, C4, C5 | 6 |
-
-Experiment 1 uses a smaller convention library, while Experiment 2 uses a larger library.
-
-Because the convention sets differ, results should not be interpreted as isolating convention count from every other aspect of task difficulty.
-
-### Training Configurations
-
-| Parameter | Value |
+| Location | What to find there |
 |---|---|
-| Algorithm | MAPPO/PPO |
-| Learning rate | 0.00025 |
-| Discount factor | 0.99 |
-| GAE lambda | 0.95 |
-| PPO update epochs | 4 |
-| Training seeds | 20, 21, 22 |
-| Training budgets | 100,000 and 500,000 timesteps |
-| Total models | 24 |
-| Evaluation episodes | 1,000 per model |
-
-The 100k and 500k models were trained independently from scratch.
-
----
-
-## 5. Evaluation Metrics
-
-Performance is measured along two dimensions: navigation and convention identification.
-
-### Navigation Performance
-
-- Goal success rate
-- Average episode reward
-- Average episode length
-- Episode truncation rate
-
-### Convention Identification
-
-- Final-step identification accuracy
-- Identification accuracy across timesteps
-- Linear-probe classification accuracy for the implicit agent
-- Explicit belief-network classification accuracy
-
-Chance identification accuracy is:
-
-- **33.33%** for Experiment 1.
-- **16.67%** for Experiment 2.
-
-### Belief Dependence
-
-For the explicit agent, evaluation compares:
-
-- Navigation using the learned belief distribution.
-- Navigation using a uniform belief distribution.
-
-This tests whether learned beliefs contribute to action-selection performance.
-
----
-
-## 6. Repository Structure
-
-```text
-convention-discovery-Research/
-│
-├── agents/
-│   └── Neural network architectures
-│
-├── environments/
-│   ├── gridworld.py
-│   └── goal_configurations.py
-│
-├── configs/
-│   └── Experiment configurations
-│
-├── training/
-│   └── train_mappo.py
-│
-├── evaluation/
-│   ├── evaluate_mappo.py
-│   ├── run_all_evaluations.py
-│   └── train_implicit_probe.py
-│
-├── scripts/
-│   └── run_all_trainings.py
-│
-├── results/
-│   ├── batch_training/
-│   └── batch_evaluation/
-│
-├── README.md
-├── requirements.txt
-├── CONTRIBUTING.md
-└── .gitignore
-```
-
-The repository contains implementation code, experiment configurations, evaluation outputs, and trained model checkpoints where available.
-
----
-
-## 7. Installation
-
-### Step 1 — Clone the repository
-
-```bash
-git clone https://github.com/Phiwe-R/convention-discovery-Research.git
-cd convention-discovery-Research
-```
-
-If checkpoints are managed through Git LFS, install Git LFS before cloning or run `git lfs pull` after cloning.
-
-### Step 2 — Create a Python environment
-
-```bash
-python -m venv .venv
-```
-
-On Windows PowerShell:
-
-```powershell
-.venv\Scripts\Activate.ps1
-```
-
-On Linux/macOS:
-
-```bash
-source .venv/bin/activate
-```
-
-### Step 3 — Install dependencies
-
-```bash
-python -m pip install -r requirements.txt
-```
-
-Run commands from the project root so Python can resolve the package imports.
-
----
-
-## 8. Training Models
-
-The project supports automated training across experiments, agents, seeds and training budgets.
-
-### Preview the training jobs
-
-```bash
-python -m scripts.run_all_trainings --dry-run
-```
-
-### Train all research configurations
-
-```bash
-python -m scripts.run_all_trainings --seeds 20 21 22 --timesteps 100000 500000
-```
-
-### Train one model configuration
-
-```bash
-python -m scripts.run_all_trainings --seeds 20 --timesteps 100000 --experiments experiment1 --agents implicit
-```
-
-Completed checkpoints are skipped automatically unless forced to retrain.
-
-Model checkpoints are stored under:
-
-`results/batch_training/`
-
----
-
-## 9. Evaluating Models
-
-### Preview the evaluation jobs
-
-```bash
-python -m evaluation.run_all_evaluations --dry-run
-```
-
-### Evaluate all models
-
-```bash
-python -m evaluation.run_all_evaluations
-```
-
-The evaluation pipeline:
-
-1. Loads saved checkpoints.
-2. Evaluates navigation on held-out episodes.
-3. Measures convention-identification performance.
-4. Trains and tests frozen-GRU linear probes for implicit agents.
-5. Compares learned and uniform beliefs for explicit agents.
-6. Saves individual evaluation files and combined summaries.
-
-### Evaluation Outputs
-
-The main summary is saved to:
-
-`results/batch_evaluation/master_results.csv`
-
-Each model also has separate evaluation records and summary files.
-
----
-
-## 10. Research Results
-
-Initial evaluation across three training seeds shows that navigation success generally increases with training budget.
-
-Convention-identification accuracy, however, remains relatively close to chance in both experiments.
-
-In addition, replacing learned beliefs with uniform beliefs has shown relatively small effects on explicit-agent goal success.
-
-These observations motivate further investigation into whether successful navigation necessarily requires accurate partner identification.
-
-**Important:** Goal success and convention-identification accuracy measure different behaviours. Strong navigation performance alone is not evidence of successful convention discovery.
-
-Detailed evaluation CSVs and training logs are available in the `results/` directory.
-
----
-
-## 11. Current Research Status
-
-**Completed**
-
-- GridWorld implementation
-- Deterministic partner conventions
-- Implicit GRU architecture
-- Explicit belief architecture
-- MAPPO training pipeline
-- Two experimental configurations
-- Multi-seed training
-- Evaluation of 24 models
-- Automated identification probing
-- Uniform-belief evaluation
-
-**Ongoing**
-
-- Statistical analysis across seeds
-- Research visualisations
-- Training stability analysis
-- Additional GRU representation diagnostics
-- Research report preparation
-
----
-
-## 12. Collaboration and Contributions
-
-This repository is intended to support research collaboration and reproducibility.
-
-Potential contribution areas include:
-
-- Agent architecture improvements
-- Belief representation and calibration
-- Alternative probing methods
-- Experimental controls and robustness tests
-- Training diagnostics
-- Statistical evaluation
-- Environment validation
-- Research documentation
-
-Contributors should preserve the original experimental configurations when making comparisons.
-
-New experimental variants should be documented separately, including changes to rewards, goal configurations, network architectures and hyperparameters.
-
-Please see `CONTRIBUTING.md` for contribution guidance.
-
----
-
-## 13. Reproducibility Notes
-
-- Use fixed random seeds when comparing models.
-- Use the same evaluation episodes for corresponding agents.
-- Report performance across multiple training seeds.
-- Keep probe training and testing data separate.
-- Do not update the implicit GRU when training diagnostic probes.
-- Distinguish navigation improvements from convention-identification improvements.
-- Document environment or reward changes before running new experiments.
-
----
-
-## 14. License and Citation
-
-A software license and formal research citation will be added after the applicable research-sharing requirements have been confirmed.
-
----
-
-**Research Project:** Convention Discovery Under Partner Uncertainty  
-**University:** University of the Witwatersrand  
-**Field:** Computational and Applied Mathematics / Multi-Agent Reinforcement Learning
+| `results/batch_training/` | **Agents 1 and 3:** saved models (`.pt`) and training logs for both experiments, all seeds and both budgets. Here `implicit` means Agent 1 and `explicit` means **Agent 3 (convention-only)**. |
+| `results/batch_evaluation/` | **Agents 1 and 3:** evaluation results, including `master_results.csv` for goal success. |
+| `results/goal_guided_clean/` | **Agent 2:** final training checkpoints, logs and `master_training_curves.csv`. |
+| `results/final_evaluation/` | **Agent 2:** final evaluation CSVs for goal success, convention and goal identification, and convention-belief ablation. |
+| `results/goal_only/` | **Agent 4:** final training checkpoints and `master_training_curves.csv`. |
+| `results/goal_only/evaluation/` | **Agent 4:** `master_evaluation_results.csv`, per-episode results, goal identification and goal-belief ablation. |
+| `results/joint_belief/` | Supporting/pretraining outputs; **do not use its older figures as final results**, but retain `balanced_exp1.pt` and `balanced_exp2.pt` because Agent 2's batch runner uses these pretrained belief checkpoints. |
+
+## 4. Where each reported metric comes from
+
+| Metric in Chapter 4 | Source data |
+|---|---|
+| **Training goal success** (Figures 4.1–4.2) | **Agents 1 & 3:** `results/batch_training/steps_*/logs/`; **Agent 2:** `results/goal_guided_clean/master_training_curves.csv` (`recent_goal_success_pct`); **Agent 4:** `results/goal_only/master_training_curves.csv` (`recent_goal_success_pct`). |
+| **PPO policy loss** (Figures 4.3–4.4) | **Agents 1 & 3:** `results/batch_training/steps_*/logs/` (`PPO loss`); **Agent 2:** `results/goal_guided_clean/master_training_curves.csv` (`policy_loss`); **Agent 4:** `results/goal_only/master_training_curves.csv` (`policy_loss`). |
+| **Convention and goal belief cross-entropy** (Figure 4.5, Agent 2) | `results/goal_guided_clean/master_training_curves.csv` (`belief_convention_ce` and `belief_goal_ce`). |
+| **Evaluation goal success** (Figure 4.6) | **Agents 1 & 3:** `results/batch_evaluation/master_results.csv` (`goal_success_pct`); **Agent 2:** `results/final_evaluation/checkpoint_evaluations.csv` (`goal_success_pct`, `real` mode); **Agent 4:** `results/goal_only/evaluation/master_evaluation_results.csv` (`success_pct`, `real` mode). |
+| **Convention identification by timestep** (Figure 4.7, Agent 2) | `results/final_evaluation/explicit_identification_by_timestep.csv` (`convention_id_pct`). |
+| **Final goal identification** (Table 4.1) | **Agent 2:** `results/final_evaluation/explicit_identification.csv` (`goal_id_final_pct`); **Agent 4:** `results/goal_only/evaluation/master_evaluation_results.csv` (`final_goal_id_pct`, `real` mode); use the 500,000-step results. |
+| **Convention-belief ablation** (Table 4.2, Agent 2) | `results/final_evaluation/checkpoint_evaluations.csv`: compare `real` with `uniform_convention` for the same experiment, seed and budget. |
+| **Goal-belief ablation** (Table 4.3, Agent 4) | `results/goal_only/evaluation/master_evaluation_results.csv`: compare `real` with `uniform` for the same experiment, seed and budget. |
+
+Reported summary percentages are averages over seeds **20, 21 and 22**. For individual verification, follow the corresponding experiment/seed/budget subfolders and their `.csv`, `.json`, `.log` and `.pt` files. In the Agent 1/3 batch folders, the label `explicit` refers to Agent 3, **not** Agent 2.

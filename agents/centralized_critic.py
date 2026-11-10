@@ -1,6 +1,4 @@
-"""Shared value network and training-state builder for both MAPPO agents.
-
-Only the critic uses this state. Actors must receive observation['learner'] only.
+""" Centralized Critic Actor for MAPPO
 """
 
 import numpy as np
@@ -9,11 +7,7 @@ from torch import nn
 
 
 def build_critic_state(observation, episode_step, max_steps=12, num_conventions=None):
-    """Make one critic input: learner(5), partner(6), convention(N), time(1).
-
-    The true convention is training-only information. Never give this vector
-    to the GRU actor or the explicit belief network.
-    """
+    
     learner = np.asarray(observation["learner"], dtype=np.float32)
     partner = np.asarray(observation["partner"], dtype=np.float32)
     convention = int(np.asarray(observation["convention"]).item())
