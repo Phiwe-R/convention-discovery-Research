@@ -24,6 +24,7 @@ The repo contains the code, saved models, training logs and evaluation results f
 | `training/train_mappo.py` | MAPPO training for **Agents 1 and 3**; Agent 3 also uses convention cross-entropy. |
 | `scripts/train_goal_guided_batch.py` | Batch-training runner used for **Agent 2**. |
 | `scripts/train_goal_only_batch.py` | Batch-training runner used for **Agent 4**. |
+| `scripts/visualise_trained_agent.py` | To see the environment for one of the trained Agents (**Agent 4**). |
 | `scripts/evaluate_goal_only_batch.py` | Batch-evaluation runner used for **Agent 4**. |
 | `evaluation/evaluate_research_batch.py` | Final batch evaluation for **Agent 2** (and supporting implicit comparisons). |
 | `tests/` | Development tests; not the final research results. |
