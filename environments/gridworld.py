@@ -416,15 +416,15 @@ class SimpleGridworld(ParallelEnv):
 
         if (self.previous_learner_pos is not None
                 and not np.array_equal(self.previous_learner_pos, self.learner_pos)):
+
             old = grid_to_screen(self.previous_learner_pos)
             new = grid_to_screen(self.learner_pos)
+
+            # Show small circles only when the learner wraps
+            # around to the opposite side of the grid.
             if np.any(np.abs(self.learner_pos - self.previous_learner_pos) > 1):
-                # Wrapped across a screen edge: avoid drawing a misleading long line.
                 pygame.draw.circle(self.window, (120, 160, 230), old, 9, 3)
                 pygame.draw.circle(self.window, (120, 160, 230), new, 9, 3)
-            else:
-                pygame.draw.line(self.window, (120, 160, 230), old, new, 6)
-                pygame.draw.circle(self.window, (120, 160, 230), old, 8)
         pygame.draw.circle(self.window, (70, 180, 100),
                            grid_to_screen(self.learner_goal), 32, 6)
         pygame.draw.circle(self.window, (230, 160, 60),
