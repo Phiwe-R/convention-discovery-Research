@@ -1,4 +1,4 @@
-"""Agent 3: Convention-belief only 
+"""Agent 3 Explicit agent
 
 The belief GRU sees only the five observation values and its recurrent memory.
 The real convention ID is NOT an input. It is used later to train the belief
